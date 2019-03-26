@@ -8,10 +8,14 @@
 #include "targetver.h"
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define CINTERFACE
+#define DIRECTINPUT_VERSION 0x0800
+
 // Windows Header Files
 #include <windows.h>
-#define CINTERFACE
 #include <dinput.h>
+#include <detours.h>
+
 
 
 // reference additional headers your program requires here

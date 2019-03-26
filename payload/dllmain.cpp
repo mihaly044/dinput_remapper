@@ -1,5 +1,4 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
-#include <Windows.h>
 #include "stdafx.h"
 
 LPCDIDATAFORMAT g_pDataFormat;
