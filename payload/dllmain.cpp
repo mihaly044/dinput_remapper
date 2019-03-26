@@ -25,7 +25,6 @@ HRESULT _stdcall MyGetDeviceState(LPDIRECTINPUTDEVICE8 lpDev, DWORD cbData, LPVO
 
 	if (status == DI_OK)
 	{
-		wchar_t sz[2048];
 		if (cbData == sizeof(DIJOYSTATE2))
 		{
 			auto lpData = static_cast<LPDIJOYSTATE2>(lpvData);
@@ -60,9 +59,10 @@ HRESULT _stdcall MyGetDeviceState(LPDIRECTINPUTDEVICE8 lpDev, DWORD cbData, LPVO
 		}
 		else if (cbData == sizeof(DIJOYSTATE))
 		{
+			wchar_t sz[2048];
 			auto lpData = static_cast<LPDIJOYSTATE>(lpvData);
 
-			for (int i = 0; i < 32; i++)
+			for (auto i = 0; i < 32; i++)
 			{
 				if (lpData->rgbButtons[i] != 0)
 				{
