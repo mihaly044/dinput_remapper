@@ -9,8 +9,6 @@
 #include "Detouring.h"
 
 using namespace std;
-
-
 int wmain(int argc, wchar_t** argv)
 {
 
@@ -32,9 +30,9 @@ int wmain(int argc, wchar_t** argv)
 	wcstombs_s(&i, dll, argv[1], MAX_PATH);
 
     if (!DetourCreateProcessWithDllEx(argv[2], argv[3],
-        NULL, NULL, TRUE,
+        nullptr, nullptr, TRUE,
         CREATE_DEFAULT_ERROR_MODE | CREATE_SUSPENDED,
-        NULL, NULL, &si, &pi, dll, NULL)) {
+		nullptr, nullptr, &si, &pi, dll, nullptr)) {
 		wprintf(L"\r\nERR %02X\r\n", GetLastError());
     }
 
