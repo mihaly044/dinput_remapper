@@ -4,19 +4,19 @@
 
 LPCDIDATAFORMAT g_pDataFormat;
 
-typedef HRESULT(__stdcall* pDirectInput8Create)(HINSTANCE, DWORD, REFIID, LPVOID*, LPUNKNOWN);
+typedef HRESULT (__stdcall* pDirectInput8Create)(HINSTANCE, DWORD, REFIID, LPVOID*, LPUNKNOWN);
 pDirectInput8Create pOrigDirectInput8Create;
 
-typedef HRESULT(__stdcall* pCreateDevice)(LPDIRECTINPUT8, const GUID&, LPDIRECTINPUTDEVICE8*, LPUNKNOWN);
+typedef HRESULT (__stdcall* pCreateDevice)(LPDIRECTINPUT8, const GUID&, LPDIRECTINPUTDEVICE8*, LPUNKNOWN);
 pCreateDevice pOriginalCreateDevice;
 
-typedef HRESULT(__stdcall* pEnumDevices)(LPDIRECTINPUT8, DWORD, LPDIENUMDEVICESCALLBACK, LPVOID, DWORD);
+typedef HRESULT (__stdcall* pEnumDevices)(LPDIRECTINPUT8, DWORD, LPDIENUMDEVICESCALLBACK, LPVOID, DWORD);
 pEnumDevices pOriginalEnumDevices;
 
-typedef HRESULT(__stdcall* pSetDataFormat)(LPDIRECTINPUTDEVICE8, LPCDIDATAFORMAT);
+typedef HRESULT (__stdcall* pSetDataFormat)(LPDIRECTINPUTDEVICE8, LPCDIDATAFORMAT);
 pSetDataFormat pOriginalSetDataFormat;
 
-typedef HRESULT(__stdcall* pGetDeviceState)(LPDIRECTINPUTDEVICE8, DWORD, LPVOID);
+typedef HRESULT (__stdcall* pGetDeviceState)(LPDIRECTINPUTDEVICE8, DWORD, LPVOID);
 pGetDeviceState pOriginalGetDeviceState;
 
 HRESULT _stdcall MyGetDeviceState(LPDIRECTINPUTDEVICE8 lpDev, DWORD cbData, LPVOID lpvData)
@@ -55,7 +55,6 @@ HRESULT _stdcall MyGetDeviceState(LPDIRECTINPUTDEVICE8 lpDev, DWORD cbData, LPVO
 				lpData->rgbButtons[1] = 0;
 				lpData->rgbButtons[2] = 0x80;
 			}
-
 		}
 		else if (cbData == sizeof(DIJOYSTATE))
 		{
@@ -82,7 +81,8 @@ HRESULT _stdcall MySetDataFormat(LPDIRECTINPUTDEVICE8 lpDev, LPCDIDATAFORMAT lpc
 	return pOriginalSetDataFormat(lpDev, lpcdf);
 }
 
-HRESULT _stdcall MyCreateDevice(LPDIRECTINPUT8 i, const GUID& rguid, LPDIRECTINPUTDEVICE8* lpDirectInputDevice, LPUNKNOWN pUnkOuter)
+HRESULT _stdcall MyCreateDevice(LPDIRECTINPUT8 i, const GUID& rguid, LPDIRECTINPUTDEVICE8* lpDirectInputDevice,
+                                LPUNKNOWN pUnkOuter)
 {
 	const auto status = pOriginalCreateDevice(i, rguid, lpDirectInputDevice, pUnkOuter);
 	if (!FAILED(status))
@@ -101,7 +101,8 @@ HRESULT _stdcall MyCreateDevice(LPDIRECTINPUT8 i, const GUID& rguid, LPDIRECTINP
 	return status;
 }
 
-HRESULT __stdcall MyDirectInput8Create(HINSTANCE hInst, DWORD dwVersion, REFIID riidltf, LPVOID * ppvOut, LPUNKNOWN punkOuter)
+HRESULT __stdcall MyDirectInput8Create(HINSTANCE hInst, DWORD dwVersion, REFIID riidltf, LPVOID* ppvOut,
+                                       LPUNKNOWN punkOuter)
 {
 	const auto status = pOrigDirectInput8Create(hInst, dwVersion, riidltf, ppvOut, punkOuter);
 
@@ -125,10 +126,9 @@ HRESULT __stdcall MyDirectInput8Create(HINSTANCE hInst, DWORD dwVersion, REFIID 
 }
 
 
-
 BOOL Hook()
 {
-	pOrigDirectInput8Create = (pDirectInput8Create)GetProcAddress(GetModuleHandle(L"dinput8.dll"), "DirectInput8Create");
+	pOrigDirectInput8Create = reinterpret_cast<pDirectInput8Create>(GetProcAddress(GetModuleHandle(L"dinput8.dll"), "DirectInput8Create"));
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 	DetourAttach(&reinterpret_cast<PVOID&>(pOrigDirectInput8Create), MyDirectInput8Create);
@@ -156,36 +156,38 @@ BOOL UnHook()
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule,
-	DWORD  ul_reason_for_call,
-	LPVOID lpReserved
+                      DWORD ul_reason_for_call,
+                      LPVOID lpReserved
 )
 {
-	if (DetourIsHelperProcess()) {
+	if (DetourIsHelperProcess())
+	{
 		return TRUE;
 	}
-	switch (ul_reason_for_call) {
-		case DLL_PROCESS_ATTACH:
-			DetourRestoreAfterWith();
-			if (!Hook())
-			{
-				MessageBox(nullptr, L"Detouring failed", L"Error", MB_OK);
-				return FALSE;
-			}
-			break;
-
-		case DLL_PROCESS_DETACH:
-
-			if (!UnHook())
-			{
-				MessageBox(nullptr, L"Detouring failed", L"Error", MB_OK);
-				return FALSE;
-			}
-			break;
-		case DLL_THREAD_ATTACH:
-		case DLL_THREAD_DETACH:
-			break;
-		default: 
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
+		DetourRestoreAfterWith();
+		if (!Hook())
+		{
+			MessageBox(nullptr, L"Detouring failed", L"Error", MB_OK);
 			return FALSE;
+		}
+		break;
+
+	case DLL_PROCESS_DETACH:
+
+		if (!UnHook())
+		{
+			MessageBox(nullptr, L"Detouring failed", L"Error", MB_OK);
+			return FALSE;
+		}
+		break;
+	case DLL_THREAD_ATTACH:
+	case DLL_THREAD_DETACH:
+		break;
+	default:
+		return FALSE;
 	}
 	return TRUE;
 }
