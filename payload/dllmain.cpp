@@ -170,7 +170,6 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 			MessageBox(NULL, L"Detouring failed", L"Error", MB_OK);
 			return FALSE;
 		}
-		MessageBox(NULL, L"DLL_PROCESS_ATTACH", L"DLL_PROCESS_ATTACH", MB_OK);
 		break;
 
 	case DLL_PROCESS_DETACH:
