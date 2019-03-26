@@ -22,51 +22,54 @@ HRESULT _stdcall MyGetDeviceState(LPDIRECTINPUTDEVICE8 lpDev, DWORD cbData, LPVO
 {
 	HRESULT status = pOriginalGetDeviceState(lpDev, cbData, lpvData);
 
-	wchar_t sz[2048];
-	if (cbData == sizeof(DIJOYSTATE2))
+	if (status == DI_OK)
 	{
-		LPDIJOYSTATE2 lpData = (LPDIJOYSTATE2)(lpvData);
-		lpData->rgbButtons; // 128
+		wchar_t sz[2048];
+		if (cbData == sizeof(DIJOYSTATE2))
+		{
+			LPDIJOYSTATE2 lpData = (LPDIJOYSTATE2)(lpvData);
+			lpData->rgbButtons; // 128
 
-		/*
-		*	Transpose the following button values:
-		*	x -> y	3 -> 0
-		*	a -> b	2 -> 1
-		*/
-		if (lpData->rgbButtons[3] == 0x80)
-		{
-			lpData->rgbButtons[3] = 0;
-			lpData->rgbButtons[0] = 0x80;
-		}
-		else if (lpData->rgbButtons[0] == 0x80)
-		{
-			lpData->rgbButtons[0] = 0;
-			lpData->rgbButtons[3] = 0x80;
-		}
-
-		if (lpData->rgbButtons[2] == 0x80)
-		{
-			lpData->rgbButtons[2] = 0;
-			lpData->rgbButtons[1] = 0x80;
-		}
-		else if (lpData->rgbButtons[1] == 0x80)
-		{
-			lpData->rgbButtons[1] = 0;
-			lpData->rgbButtons[2] = 0x80;
-		}
-
-	}
-	else if (cbData == sizeof(DIJOYSTATE))
-	{
-		LPDIJOYSTATE lpData = (LPDIJOYSTATE)(lpvData);
-		lpData->rgbButtons; // 32
-
-		for (int i = 0; i < 32; i++)
-		{
-			if (lpData->rgbButtons[i] != 0)
+			/*
+			*	Transpose the following button values:
+			*	x -> y	3 -> 0
+			*	a -> b	2 -> 1
+			*/
+			if (lpData->rgbButtons[3] == 0x80)
 			{
-				wsprintf(sz, L"(32) %d %02X\r\n", i, lpData->rgbButtons[i]);
-				OutputDebugString(sz);
+				lpData->rgbButtons[3] = 0;
+				lpData->rgbButtons[0] = 0x80;
+			}
+			else if (lpData->rgbButtons[0] == 0x80)
+			{
+				lpData->rgbButtons[0] = 0;
+				lpData->rgbButtons[3] = 0x80;
+			}
+
+			if (lpData->rgbButtons[2] == 0x80)
+			{
+				lpData->rgbButtons[2] = 0;
+				lpData->rgbButtons[1] = 0x80;
+			}
+			else if (lpData->rgbButtons[1] == 0x80)
+			{
+				lpData->rgbButtons[1] = 0;
+				lpData->rgbButtons[2] = 0x80;
+			}
+
+		}
+		else if (cbData == sizeof(DIJOYSTATE))
+		{
+			LPDIJOYSTATE lpData = (LPDIJOYSTATE)(lpvData);
+			lpData->rgbButtons; // 32
+
+			for (int i = 0; i < 32; i++)
+			{
+				if (lpData->rgbButtons[i] != 0)
+				{
+					wsprintf(sz, L"(32) %d %02X\r\n", i, lpData->rgbButtons[i]);
+					OutputDebugString(sz);
+				}
 			}
 		}
 	}
